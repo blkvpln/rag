@@ -1,29 +1,48 @@
-/* ==========================================================================
-   ФИРМЕННЫЙ СТИЛЬ БИБЛИОТЕКИ "ЗНАНИЕ" (v1.0)
-   ========================================================================== */
-
 /* 1. ГЛОБАЛЬНЫЕ НАСТРОЙКИ */
 body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f8f9fa; color: #333333; line-height: 1.6; }
+
+/* Стандартные заголовки */
 h1, h2, h3, h4 { color: #212529; font-weight: 600; letter-spacing: -0.02em; }
+
+/* Специфический стиль для заголовков в карточках, чтобы они не конфликтовали */
+.card-title {
+    font-size: 1.25rem !important;
+    font-weight: 600 !important; /* Убедись, что тут стоит 600 */
+    color: #212529 !important;
+}
 
 /* 2. ТЕМА: БРЕНДОВАЯ ПАЛИТРА */
 .bg-primary, .navbar, .btn-primary { background-color: #198754 !important; border-color: #198754 !important; }
 
 /* 3. КОМПОНЕНТЫ: КАРТОЧКИ */
-.card { 
-    border: 1px solid rgba(0, 0, 0, 0.05); 
-    border-radius: 12px; 
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); 
-    /* Убираем transform из анимации fadeInUp, чтобы он не конфликтовал с hover */
-    animation: fadeIn 0.8s ease-out forwards; 
-    transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) !important;
+.card {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    border: 1px solid rgba(0,0,0,0.08) !important; /* чуть четче рамка */
 }
 
-.card:hover { 
-    transform: translateY(-5px) !important; 
-    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15) !important; 
+.card:hover {
+    transform: translateY(-8px) !important; /* прыжок чуть выше */
+    box-shadow: 0 20px 30px rgba(0,0,0,0.12) !important; /* тень мощнее */
+    border-color: rgba(25, 135, 84, 0.3) !important; /* легкий зеленоватый контур */
+}
+/* Улучшение отступов внутри карточки */
+.card-body {
+    padding: 1.5rem !important; /* Больше "воздуха" */
 }
 
+/* Заголовок книги в карточке */
+.card-title {
+    font-size: 1.25rem !important;
+    margin-bottom: 0.75rem !important;
+    line-height: 1.3 !important;
+}
+
+/* Стиль автора */
+.card-subtitle, .text-muted {
+    font-size: 0.95rem !important;
+    color: #6c757d !important;
+    margin-bottom: 1rem !important;
+}
 /* Новая анимация только с прозрачностью, без трансформации */
 @keyframes fadeIn { 
     from { opacity: 0; } 
@@ -95,4 +114,20 @@ h1 .tag-fix, h2 .tag-fix, h3 .tag-fix,
 .btn:hover {
     transform: translateY(-2px);
     box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+input.form-control:focus, 
+input[type="text"]:focus {
+    border-color: #198754 !important;
+    box-shadow: 0 0 0 0.25rem rgba(25, 135, 84, 0.25) !important;
+    transition: border-color 0.2s, box-shadow 0.2s !important;
+}
+
+body {
+    animation: fadeIn 0.3s ease-out; /* ускорили до 0.3с */
+}
+
+@keyframes fadeIn { 
+    from { opacity: 0.8; } /* начинаем с 0.8, а не с 0 */
+    to { opacity: 1; } 
 }
