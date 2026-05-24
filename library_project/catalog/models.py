@@ -1,56 +1,69 @@
+import os
+import io
+import random
+import hashlib
+from PIL import Image, ImageDraw
 from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
 from datetime import timedelta
 from django.utils.text import slugify
 from django.urls import reverse
+from django.core.files.base import ContentFile
 from taggit.managers import TaggableManager
 
 class Book(models.Model):
     title = models.CharField("Название", max_length=200)
-    slug = models.SlugField(
-        max_length=200, 
-        unique=True, 
-        blank=True,
-        null=True  # Важно для существующих книг
-    )
+    slug = models.SlugField(max_length=200, unique=True, blank=True, null=True)
     author = models.CharField("Автор", max_length=150)
     isbn = models.CharField("ISBN", max_length=17, unique=True, blank=True, null=True)
     genre = models.ForeignKey("Genre", on_delete=models.SET_NULL, null=True, verbose_name="Жанр", related_name="books")
     is_available = models.BooleanField("Доступна", default=True)
     summary = models.TextField("Описание", blank=True)
     added_at = models.DateTimeField("Добавлено", auto_now_add=True)
+    cover = models.ImageField("Обложка", upload_to='books/covers/', blank=True, null=True)
     
     tags = TaggableManager(blank=True, verbose_name="Теги")
 
+    def generate_cover(self):
+        """Генерирует случайную цветную обложку с инициалом."""
+        colors = [(60, 179, 113), (70, 130, 180), (205, 92, 92), (218, 165, 32), (106, 90, 205)]
+        color = random.choice(colors)
+        img = Image.new('RGB', (300, 450), color=color)
+        d = ImageDraw.Draw(img)
+        
+        # Рисуем первую букву
+        text = self.title[0].upper() if self.title else "?"
+        d.text((120, 180), text, fill=(255, 255, 255))
+        
+        buffer = io.BytesIO()
+        img.save(buffer, format='PNG')
+        self.cover.save(f'{self.slug}.png', ContentFile(buffer.getvalue()), save=False)
+
     def save(self, *args, **kwargs):
-        # Генерируем slug ТОЛЬКО если его нет
+        # 1. Логика генерации slug
         if not self.slug:
-            # Создаём базовый slug из названия (только латиница)
             base_slug = slugify(self.title, allow_unicode=False)
-            
-            #  Если slugify вернул пустую строку (кириллица), создаём запасной вариант
             if not base_slug:
-                # Если книга уже имеет ID (сохранена), используем его
                 if self.pk:
                     base_slug = f"book-{self.pk}"
                 else:
-                    # Если книга новая, используем хеш от названия как временный идентификатор
-                    import hashlib
                     base_slug = f"book-{hashlib.md5(self.title.encode('utf-8')).hexdigest()[:8]}"
             
-            # Проверяем уникальность и добавляем суффикс при необходимости
             slug = base_slug
             counter = 1
             while Book.objects.filter(slug=slug).exclude(pk=self.pk).exists():
                 slug = f"{base_slug}-{counter}"
                 counter += 1
-            
-            # Присваиваем итоговый slug
             self.slug = slug
         
-        # Вызываем оригинальный save() для сохранения в БД
+        # 2. Сохраняем, чтобы получить объект в БД
         super().save(*args, **kwargs)
+        
+        # 3. Генерируем обложку только если её нет
+        if not self.cover:
+            self.generate_cover()
+            super().save(update_fields=['cover'])
 
     def get_absolute_url(self):
         return reverse('catalog:book_detail', kwargs={'slug': self.slug})
@@ -106,7 +119,7 @@ class Reservation(models.Model):
     ]
 
     book = models.ForeignKey(Book, on_delete=models.CASCADE, related_name="reservations", verbose_name="Книга")
-    reader = models.ForeignKey(Reader, on_delete=models.CASCADE, related_name="reservations", verbose_name="Читатель", null=True,blank=True)
+    reader = models.ForeignKey(Reader, on_delete=models.CASCADE, related_name="reservations", verbose_name="Читатель", null=True, blank=True)
     reservation_date = models.DateTimeField("Дата бронирования", auto_now_add=True)
     start_date = models.DateField("Дата выдачи", null=True, blank=True)
     due_date = models.DateField("Дата возврата", null=True, blank=True)
@@ -150,7 +163,6 @@ class Fine(models.Model):
     class Meta:
         verbose_name = "Штраф"
         verbose_name_plural = "Штрафы"
-
 
 class Event(models.Model):
     title = models.CharField("Название мероприятия", max_length=200)

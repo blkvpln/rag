@@ -10,7 +10,7 @@
         </ol>
     </nav>
     
-    <h2> Книги с тегом "<span class="badge bg-primary">{{ tag.name }}</span>"</h2>
+    <h2>Книги с тегом <a href="#" class="tag-link">{{ tag.name }}</a></h2>
     <p class="text-muted">Найдено книг: {{ page_obj.paginator.count }}</p>
 </div>
 
@@ -47,14 +47,14 @@
             {% if book.tags.all %}
             <div class="mb-2">
                 {% for tag in book.tags.all %}
-                <a href="{% url 'catalog:books_by_tag' tag.slug %}" class="badge bg-secondary text-decoration-none me-1">
-                    {{ tag.name }}
-                </a>
+                    <a href="{% url 'catalog:books_by_tag' tag.slug %}" class="tag-link">
+                        {{ tag.name }}
+                    </a>
                 {% endfor %}
             </div>
             {% endif %}
             
-            <a href="{{ book.get_absolute_url }}" class="btn btn-sm btn-outline-primary">
+            <a href="{{ book.get_absolute_url }}" class="btn btn-sm btn-outline-success">
                 <i class="bi bi-book"></i> Подробнее
             </a>
         </div>
